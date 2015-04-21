@@ -97,7 +97,7 @@ sub trim {
 
 sub get_amaas_info($) {
 	my ($application_id) = @_;
-	my $query = "SELECT description
+	my $query = "SELECT description, category
 				 FROM amaas am, source src
 				 WHERE am.application_id = $application_id
 				   AND src.id = am.source_id
@@ -105,7 +105,8 @@ sub get_amaas_info($) {
 	my $ref = do_select($dbh, $query);
 	foreach my $arrayhdl (@$ref) {
 		my $description = $$arrayhdl{description} || "";
-		print substr($description,0,67) . "\n";
+		my $category = $$arrayhdl{category} || "";
+		print substr($description,0,67) . " - $category\n";
 	}
 }
 
@@ -256,6 +257,21 @@ sub get_req_network_path($) {
 	}
 }
 
+sub get_remarks($) {
+	my ($application_id) = @_;
+	my $query = "SELECT remark, description
+				 FROM appl_review rev, source src
+				 WHERE application_id = $application_id
+				   AND src.id = rev.source_id
+				 ORDER BY rev.id";	   
+	my $ref = do_select($dbh, $query);
+	foreach my $arrayhdl (@$ref) {
+		my $description = $$arrayhdl{description};
+		my $remark = $$arrayhdl{remark};
+		print "$remark ($description)\n\n";
+	}
+}
+
 ######
 # Main
 ######
@@ -305,7 +321,7 @@ foreach my $arrayhdl (@$ref) {
 	my $application_id = $$arrayhdl{id};
 	my $name = $$arrayhdl{name};
 	my $cmdb_id = $$arrayhdl{cmdb_id};
-	my $msg = "Application: $name ($bt_number), cmdb id: $cmdb_id";
+	my $msg = "Application: $name ($bt_number), cmdb id: $cmdb_id (id: $application_id)";
 	print "$msg\n";
 	print "=" x length($msg);
 	print "\n\n";
@@ -316,6 +332,10 @@ foreach my $arrayhdl (@$ref) {
 	print "URL Information:\n";
 	print "----------------\n";
 	get_url_info($application_id);
+	print "\n\n";
+	print "Review Remark:\n";
+	print "--------------\n";
+	get_remarks($application_id);
 	print "\n\n";
 }
 

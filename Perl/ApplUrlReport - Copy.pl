@@ -146,25 +146,19 @@ if (not defined $openres) {
 
 my $headerline = "id;nr;name;url;network type;dns server;dns ip address;";
 $headerline   .= "rev. proxy server;rev. proxy ip;rev. proxy port;internet whitelist;";
-$headerline   .= "appl. server;appl. ip;appl. port;id req to network team;";
-$headerline   .= "dwh sla binnen;dwh sla buiten;cmo monitoring;";
-$headerline   .= "fmo monitoring;fmo result;fmo category\n";
+$headerline   .= "appl. server;appl. ip;appl. port;id req to network team\n";
 print Rep $headerline;
 
 my @fields = qw(id number name url dns_category dns_servername dns_ip_address
 			    rev_server rev_ip_address rev_port nt_source_id
-				dir_server dir_ip_address dir_port path_source_id
-				sla_binnen sla_buiten cmo_monitoring
-				fmo_monitoring fmo_result fmo_category);
+				dir_server dir_ip_address dir_port path_source_id);
 # Get Application Information
 my $query =  "SELECT am.id id, appl.number number, appl.name name, url.url url, 
 					 dns.category dns_category, dns.servername dns_servername, dns.ip_address dns_ip_address, 
 					 rev.server rev_server, rev.ip_address rev_ip_address, rev.port rev_port, 
 					 nt.source_id nt_source_id, 
 					 dir.server dir_server, dir.ip_address dir_ip_address, dir.port dir_port, 
-					 path.source_id path_source_id,
-					 dwh.onb_binnen onb_binnen, dwh.onb_buiten onb_buiten, dwh.monitoring cmo_monitoring,
-					 fmo.status fmo_monitoring, fmo.summary fmo_result, fmo.result fmo_category
+					 path.source_id path_source_id
 			  FROM amaas am
 			  LEFT JOIN application appl on am.application_id = appl.id
 			  LEFT JOIN url url on url.application_id = appl.id
@@ -173,8 +167,6 @@ my $query =  "SELECT am.id id, appl.number number, appl.name name, url.url url,
 			  LEFT JOIN req_internet_whitelist nt on nt.id = dns.req_internet_whitelist_id
 			  LEFT JOIN url2appl_ip dir on dir.id=url.url2appl_ip_id
 			  LEFT JOIN req_network_path path on path.id = dir.req_network_path_id
-			  LEFT JOIN dwh_status dwh on dwh.application_id = appl.id
-			  LEFT JOIN fmo_sitescope fmo on fmo.url_id = url.id
 			  WHERE am.source_id = $source_id
 				AND am.category = 'URL'";
 my $ref = do_select($dbh, $query);
@@ -194,12 +186,6 @@ foreach my $arrayhdl (@$ref) {
 	my $dir_ip_address	= $$arrayhdl{dir_ip_address}	|| "";
 	my $dir_port		= $$arrayhdl{dir_port}			|| "";
 	my $path_source_id	= $$arrayhdl{path_source_id}	|| "";
-	my $sla_binnen		= $$arrayhdl{sla_binnen}		|| "";
-	my $sla_buiten		= $$arrayhdl{sla_buiten}		|| "";
-	my $cmo_monitoring	= $$arrayhdl{cmo_monitoring}	|| "";
-	my $fmo_monitoring	= $$arrayhdl{fmo_monitoring}	|| "";
-	my $fmo_result		= $$arrayhdl{fmo_result}		|| "";
-	my $fmo_category	= $$arrayhdl{fmo_category}		|| "";
 	my (@vals) = map { eval ("\$" . $_ ) } @fields;
 	print Rep join(";",@vals) . "\n";
 }
