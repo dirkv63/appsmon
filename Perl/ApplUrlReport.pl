@@ -20,7 +20,7 @@ This script will get full Application to URL Report for a specific period.
 
 =head1 SYNOPSIS
 
- ApplUrlReport.pl -s source_id
+ ApplUrlReport.pl -s source_id -f fmo_source_id
 
  ApplUrlReport -h	Usage
  ApplUrlReport -h 1  Usage and description of the options
@@ -34,6 +34,10 @@ This script will get full Application to URL Report for a specific period.
 
 Source ID of the AmaaS reference period.
 
+=item B<-f fmo_source_id>
+
+Source ID of the FMO Sitescope Extract.
+
 =back
 
 =head1 ADDITIONAL DOCUMENTATION
@@ -44,7 +48,7 @@ Source ID of the AmaaS reference period.
 # Variables
 ########### 
 
-my ($log, $dbh, $source_id);
+my ($log, $dbh, $source_id, $fmo_source_id);
 my $reportdir = "c:/temp/";
 
 #####
@@ -103,7 +107,7 @@ sub trim {
 
 # Handle input values
 my %options;
-getopts("h:s:", \%options) or pod2usage(-verbose => 0);
+getopts("h:s:f:", \%options) or pod2usage(-verbose => 0);
 my $arglength = scalar keys %options;  
 if ($arglength == 0) {			# If no options specified,
 	$options{"h"} = 0;			# display usage.
@@ -131,6 +135,12 @@ if (defined $options{s}) {
 	$log->fatal("Source ID not defined, exiting...");
 	exit_application(1);
 }
+if (defined $options{f}) {
+	$fmo_source_id = $options{f};
+} else {
+	$log->fatal("FMO Sitescope Source ID not defined, exiting...");
+	exit_application(1);
+}
 # End handle input values
 
 # Make database connection for vo database
@@ -155,7 +165,7 @@ my @fields = qw(id number name url dns_category dns_servername dns_ip_address
 			    rev_server rev_ip_address rev_port nt_source_id
 				dir_server dir_ip_address dir_port path_source_id
 				sla_binnen sla_buiten cmo_monitoring
-				fmo_monitoring fmo_result fmo_category);
+				fmo_monitoring fmo_result fmo_source_id);
 # Get Application Information
 my $query =  "SELECT am.id id, appl.number number, appl.name name, url.url url, 
 					 dns.category dns_category, dns.servername dns_servername, dns.ip_address dns_ip_address, 
@@ -164,7 +174,7 @@ my $query =  "SELECT am.id id, appl.number number, appl.name name, url.url url,
 					 dir.server dir_server, dir.ip_address dir_ip_address, dir.port dir_port, 
 					 path.source_id path_source_id,
 					 dwh.onb_binnen onb_binnen, dwh.onb_buiten onb_buiten, dwh.monitoring cmo_monitoring,
-					 fmo.status fmo_monitoring, fmo.summary fmo_result, fmo.result fmo_category
+					 fmo.status fmo_monitoring, fmo.summary fmo_result, fmo.source_id fmo_source_id
 			  FROM amaas am
 			  LEFT JOIN application appl on am.application_id = appl.id
 			  LEFT JOIN url url on url.application_id = appl.id
@@ -174,7 +184,7 @@ my $query =  "SELECT am.id id, appl.number number, appl.name name, url.url url,
 			  LEFT JOIN url2appl_ip dir on dir.id=url.url2appl_ip_id
 			  LEFT JOIN req_network_path path on path.id = dir.req_network_path_id
 			  LEFT JOIN dwh_status dwh on dwh.application_id = appl.id
-			  LEFT JOIN fmo_sitescope fmo on fmo.url_id = url.id
+			  LEFT JOIN fmo_sitescope fmo on fmo.url_id = url.id AND fmo.source_id = $fmo_source_id
 			  WHERE am.source_id = $source_id
 				AND am.category = 'URL'";
 my $ref = do_select($dbh, $query);
@@ -199,7 +209,7 @@ foreach my $arrayhdl (@$ref) {
 	my $cmo_monitoring	= $$arrayhdl{cmo_monitoring}	|| "";
 	my $fmo_monitoring	= $$arrayhdl{fmo_monitoring}	|| "";
 	my $fmo_result		= $$arrayhdl{fmo_result}		|| "";
-	my $fmo_category	= $$arrayhdl{fmo_category}		|| "";
+	my $fmo_source_id	= $$arrayhdl{fmo_source_id}		|| "";
 	my (@vals) = map { eval ("\$" . $_ ) } @fields;
 	print Rep join(";",@vals) . "\n";
 }

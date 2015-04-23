@@ -114,7 +114,7 @@ sub get_url_info($) {
 	my ($application_id) = @_;
 	my $query = "SELECT src.description, url.url, url.purpose,
 						url.startdate, url.enddate, url.network_category,
-						url.url2dns_id, url.url2appl_ip_id
+						url.url2dns_id, url.url2appl_ip_id, url.id
 				 FROM url url, source src
 				 WHERE url.application_id = $application_id
 				   AND src.id = url.source_id";
@@ -122,6 +122,7 @@ sub get_url_info($) {
 	foreach my $arrayhdl (@$ref) {
 		my $description = $$arrayhdl{description} || "";
 		my $url = $$arrayhdl{url};
+		my $url_id = $$arrayhdl{id};
 		my $purpose = $$arrayhdl{purpose} || "";
 		my $startdate = $$arrayhdl{startdate} || "";
 		my $enddate = $$arrayhdl{enddate} || "";
@@ -142,6 +143,25 @@ sub get_url_info($) {
 				print "No Direct IP Address for Application Server known.\n";
 			}
 		}
+		print "FMO Sitescope:\n";
+		print "--------------\n";
+		get_fmo_sitescope($url_id);
+	}
+}
+
+sub get_fmo_sitescope($) {
+	my ($url_id) = @_;
+	my $query = "SELECT fmo.status, fmo.summary, src.description
+				 FROM fmo_sitescope fmo, source src
+				 WHERE fmo.url_id = $url_id
+				   AND src.id = fmo.source_id
+				 ORDER BY fmo.source_id ASC";
+	my $ref = do_select($dbh, $query);
+	foreach my $arrayhdl (@$ref) {
+		my $status = $$arrayhdl{status} || "";
+		my $summary = $$arrayhdl{summary} || "";
+		my $description = $$arrayhdl{description} || "";
+		print "$description:\n$status\n$summary\n\n";
 	}
 }
 
