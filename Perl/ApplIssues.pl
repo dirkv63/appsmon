@@ -14,6 +14,20 @@ Initial release.
 
 =back
 
+version 1.1 29 April 2015 DV
+
+=over 4
+
+=item *
+
+Relation between Application and URL via appl_url table (many-to-many).
+
+=item *
+
+Table fmo_sitescope now links to applications, not to urls.
+
+=back
+
 =head1 DESCRIPTION
 
 This script will get URL monitoring in Error and defined actions for this application.
@@ -50,7 +64,7 @@ ID: 20 - for Sitescope Extract 22/04/2015
 
 =item B<-i issue_source_id>
 
-Issue Remark source ID of the FMO Sitescope Extract.
+Issue Remark source ID of the FMO Sitescope Extract. This can be a comma-separated list of Issues.
 
 ID: 18 - for List of Remarks following Sitescope Extract 08/04/2015.
 
@@ -207,20 +221,21 @@ my $query =  "SELECT am.id id, appl.number number, appl.name name, url.url url,
 					 ar.remark ar_remark
 			  FROM amaas am
 			  LEFT JOIN application appl on am.application_id = appl.id
-			  LEFT JOIN url url on url.application_id = appl.id
+			  LEFT JOIN appl_url applurl on applurl.appl_id = appl.id
+			  LEFT JOIN url url on url.id = applurl.url_id
 			  LEFT JOIN url2dns dns on url.url2dns_id = dns.id
 			  LEFT JOIN req_revproxy_tx rev on rev.id = dns.req_revproxy_tx_id
 			  LEFT JOIN req_internet_whitelist nt on nt.id = dns.req_internet_whitelist_id
 			  LEFT JOIN url2appl_ip dir on dir.id=url.url2appl_ip_id
 			  LEFT JOIN req_network_path path on path.id = dir.req_network_path_id
 			  LEFT JOIN dwh_status dwh on dwh.application_id = appl.id
-			  LEFT JOIN fmo_sitescope fmo on fmo.url_id = url.id 
+			  LEFT JOIN fmo_sitescope fmo on fmo.appl_id = appl.id 
 			         AND fmo.source_id = $fmo_source_id
 			  LEFT JOIN appl_review ar on ar.application_id = appl.id
-			         AND ar.source_id = $issue_source_id
+			         AND ar.source_id = ($issue_source_id)
 			  WHERE am.source_id = $source_id
 				AND am.category = 'URL'
-				AND not fmo.status like 'Status: Good%'";
+				AND not fmo.status like 'Status: Go%'"; # Status can be 'Good' or 'Goed', we're lucky here...
 my $ref = do_select($dbh, $query);
 foreach my $arrayhdl (@$ref) {
 	my $id				= $$arrayhdl{id};

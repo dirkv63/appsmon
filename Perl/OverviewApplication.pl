@@ -116,9 +116,10 @@ sub get_url_info($) {
 	my $query = "SELECT src.description, url.url, url.purpose,
 						url.startdate, url.enddate, url.network_category,
 						url.url2dns_id, url.url2appl_ip_id, url.id
-				 FROM url url, source src
-				 WHERE url.application_id = $application_id
-				   AND src.id = url.source_id";
+				 FROM url url, source src, appl_url applurl
+				 WHERE applurl.appl_id = $application_id
+				   AND src.id = url.source_id
+				   AND url.id = applurl.url_id";
 	my $ref = do_select($dbh, $query);
 	foreach my $arrayhdl (@$ref) {
 		my $description = $$arrayhdl{description} || "";
@@ -146,15 +147,15 @@ sub get_url_info($) {
 		}
 		print "FMO Sitescope:\n";
 		print "--------------\n";
-		get_fmo_sitescope($url_id);
+		get_fmo_sitescope($application_id);
 	}
 }
 
 sub get_fmo_sitescope($) {
-	my ($url_id) = @_;
+	my ($application_id) = @_;
 	my $query = "SELECT fmo.status, fmo.summary, src.description, src.event
 				 FROM fmo_sitescope fmo, source src
-				 WHERE fmo.url_id = $url_id
+				 WHERE fmo.appl_id = $application_id
 				   AND src.id = fmo.source_id
 				 ORDER BY src.event ASC";
 	my $ref = do_select($dbh, $query);

@@ -176,8 +176,9 @@ my $query =  "SELECT appl.number number, appl.name name, url.url url,
 					 fmo.name fmo_name, fmo.status fmo_monitoring
 			  FROM amaas am
 			  LEFT JOIN application appl on am.application_id = appl.id
-			  LEFT JOIN url url on url.application_id = appl.id
-			  LEFT JOIN fmo_sitescope fmo on fmo.url_id = url.id 
+			  LEFT JOIN appl_url applurl on applurl.appl_id = appl.id
+			  LEFT JOIN url url on url.id = applurl.url_id
+			  LEFT JOIN fmo_sitescope fmo on fmo.appl_id = appl.id 
 			         AND fmo.source_id = $fmo_source_id
 			  WHERE am.source_id = $source_id
 				AND am.category = 'URL'";

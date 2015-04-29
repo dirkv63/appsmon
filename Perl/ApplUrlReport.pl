@@ -14,6 +14,20 @@ Initial release.
 
 =back
 
+version 1.1 29 April 2015 DV
+
+=over 4
+
+=item *
+
+Relation between Application and URL via appl_url table (many-to-many).
+
+=item *
+
+Table fmo_sitescope now links to applications, not to urls.
+
+=back
+
 =head1 DESCRIPTION
 
 This script will get full Application to URL Report for a specific period.
@@ -101,6 +115,29 @@ sub trim {
     return wantarray ? @out : $out[0];
 }
 
+sub get_appl_review($) {
+	my ($appl_id) = @_;
+	my $revline = "";
+	my $query = "SELECT remark, event, description
+				 FROM appl_review rev, source src
+				 WHERE rev.application_id = $appl_id
+				   AND src.id = rev.source_id
+				 ORDER BY event";
+	my $ref = do_select($dbh, $query);
+	foreach my $arrayhdl (@$ref) {
+		my $remark = $$arrayhdl{remark} || "";
+		my $event = $$arrayhdl{event} || "";
+		my $description = $$arrayhdl{description} || "";
+		$revline .= "$remark ($event) -";
+	}
+	if (length($revline) > 3) {
+		$revline = substr($revline,0,-2);
+	}
+	return $revline;
+}
+
+
+
 ######
 # Main
 ######
@@ -158,16 +195,16 @@ my $headerline = "id;nr;name;url;network type;dns server;dns ip address;";
 $headerline   .= "rev. proxy server;rev. proxy ip;rev. proxy port;internet whitelist;";
 $headerline   .= "appl. server;appl. ip;appl. port;id req to network team;";
 $headerline   .= "dwh sla binnen;dwh sla buiten;cmo monitoring;";
-$headerline   .= "fmo monitoring;fmo result;fmo category\n";
+$headerline   .= "fmo monitoring;fmo result;fmo category;Review Remarks\n";
 print Rep $headerline;
 
 my @fields = qw(id number name url dns_category dns_servername dns_ip_address
 			    rev_server rev_ip_address rev_port nt_source_id
 				dir_server dir_ip_address dir_port path_source_id
 				sla_binnen sla_buiten cmo_monitoring
-				fmo_monitoring fmo_result fmo_source_id);
+				fmo_monitoring fmo_result fmo_source_id appl_review);
 # Get Application Information
-my $query =  "SELECT am.id id, appl.number number, appl.name name, url.url url, 
+my $query =  "SELECT am.id id, appl.id appl_id, appl.number number, appl.name name, url.url url,
 					 dns.category dns_category, dns.servername dns_servername, dns.ip_address dns_ip_address, 
 					 rev.server rev_server, rev.ip_address rev_ip_address, rev.port rev_port, 
 					 nt.source_id nt_source_id, 
@@ -177,19 +214,22 @@ my $query =  "SELECT am.id id, appl.number number, appl.name name, url.url url,
 					 fmo.status fmo_monitoring, fmo.summary fmo_result, fmo.source_id fmo_source_id
 			  FROM amaas am
 			  LEFT JOIN application appl on am.application_id = appl.id
-			  LEFT JOIN url url on url.application_id = appl.id
+			  LEFT JOIN appl_url applurl on applurl.appl_id = appl.id
+			  LEFT JOIN url url on url.id = applurl.url_id
 			  LEFT JOIN url2dns dns on url.url2dns_id = dns.id
 			  LEFT JOIN req_revproxy_tx rev on rev.id = dns.req_revproxy_tx_id
 			  LEFT JOIN req_internet_whitelist nt on nt.id = dns.req_internet_whitelist_id
 			  LEFT JOIN url2appl_ip dir on dir.id=url.url2appl_ip_id
 			  LEFT JOIN req_network_path path on path.id = dir.req_network_path_id
 			  LEFT JOIN dwh_status dwh on dwh.application_id = appl.id
-			  LEFT JOIN fmo_sitescope fmo on fmo.url_id = url.id AND fmo.source_id = $fmo_source_id
+			  LEFT JOIN fmo_sitescope fmo on fmo.appl_id = appl.id 
+			        AND fmo.source_id = $fmo_source_id
 			  WHERE am.source_id = $source_id
 				AND am.category = 'URL'";
 my $ref = do_select($dbh, $query);
 foreach my $arrayhdl (@$ref) {
 	my $id				= $$arrayhdl{id};
+	my $appl_id			= $$arrayhdl{appl_id};
 	my $number			= $$arrayhdl{number};
 	my $name			= $$arrayhdl{name};
 	my $url				= $$arrayhdl{url}				|| "";
@@ -210,6 +250,8 @@ foreach my $arrayhdl (@$ref) {
 	my $fmo_monitoring	= $$arrayhdl{fmo_monitoring}	|| "";
 	my $fmo_result		= $$arrayhdl{fmo_result}		|| "";
 	my $fmo_source_id	= $$arrayhdl{fmo_source_id}		|| "";
+	my $appl_review		= get_appl_review($appl_id);
+	$fmo_monitoring = substr($fmo_monitoring, 0, index($fmo_monitoring,";"));
 	my (@vals) = map { eval ("\$" . $_ ) } @fields;
 	print Rep join(";",@vals) . "\n";
 }
