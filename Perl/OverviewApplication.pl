@@ -97,16 +97,17 @@ sub trim {
 
 sub get_amaas_info($) {
 	my ($application_id) = @_;
-	my $query = "SELECT description, category
+	my $query = "SELECT description, category, event
 				 FROM amaas am, source src
 				 WHERE am.application_id = $application_id
 				   AND src.id = am.source_id
-				 ORDER BY am.source_id desc";
+				 ORDER BY event";
 	my $ref = do_select($dbh, $query);
 	foreach my $arrayhdl (@$ref) {
 		my $description = $$arrayhdl{description} || "";
 		my $category = $$arrayhdl{category} || "";
-		print substr($description,0,67) . " - $category\n";
+		my $event = $$arrayhdl{event} || "";
+		print "$event - " . substr($description,0,50) . " - $category\n";
 	}
 }
 
@@ -151,17 +152,18 @@ sub get_url_info($) {
 
 sub get_fmo_sitescope($) {
 	my ($url_id) = @_;
-	my $query = "SELECT fmo.status, fmo.summary, src.description
+	my $query = "SELECT fmo.status, fmo.summary, src.description, src.event
 				 FROM fmo_sitescope fmo, source src
 				 WHERE fmo.url_id = $url_id
 				   AND src.id = fmo.source_id
-				 ORDER BY fmo.source_id ASC";
+				 ORDER BY src.event ASC";
 	my $ref = do_select($dbh, $query);
 	foreach my $arrayhdl (@$ref) {
 		my $status = $$arrayhdl{status} || "";
 		my $summary = $$arrayhdl{summary} || "";
 		my $description = $$arrayhdl{description} || "";
-		print "$description:\n$status\n$summary\n\n";
+		my $event = $$arrayhdl{event} || "";
+		print "$event: $description:\n$status\n$summary\n\n";
 	}
 }
 
@@ -279,16 +281,17 @@ sub get_req_network_path($) {
 
 sub get_remarks($) {
 	my ($application_id) = @_;
-	my $query = "SELECT remark, description
+	my $query = "SELECT remark, description, event
 				 FROM appl_review rev, source src
 				 WHERE application_id = $application_id
 				   AND src.id = rev.source_id
-				 ORDER BY rev.id";	   
+				 ORDER BY event";	   
 	my $ref = do_select($dbh, $query);
 	foreach my $arrayhdl (@$ref) {
 		my $description = $$arrayhdl{description};
 		my $remark = $$arrayhdl{remark};
-		print "$remark ($description)\n\n";
+		my $event = $$arrayhdl{event};
+		print "$event: $remark ($description)\n\n";
 	}
 }
 
@@ -340,7 +343,7 @@ my $ref = do_select($dbh, $query);
 foreach my $arrayhdl (@$ref) {
 	my $application_id = $$arrayhdl{id};
 	my $name = $$arrayhdl{name};
-	my $cmdb_id = $$arrayhdl{cmdb_id};
+	my $cmdb_id = $$arrayhdl{cmdb_id} || "";
 	my $msg = "Application: $name ($bt_number), cmdb id: $cmdb_id (id: $application_id)";
 	print "$msg\n";
 	print "=" x length($msg);
