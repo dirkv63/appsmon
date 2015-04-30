@@ -145,11 +145,11 @@ print "\n\n";
 print "-f FMO_Sitescope Selection List\n";
 print "-------------------------------\n";
 # Get Source IDs for AMAAS List
-my $query =  "SELECT distinct source_id, description, event 
+$query =  "SELECT distinct source_id, description, event 
               FROM fmo_sitescope, source src
 			  WHERE src.id = source_id
 			  ORDER BY event";
-my $ref = do_select($dbh, $query);
+$ref = do_select($dbh, $query);
 foreach my $arrayhdl (@$ref) {
 	my $source_id = $$arrayhdl{source_id};
 	my $description = $$arrayhdl{description} || "";
@@ -162,11 +162,11 @@ print "\n\n";
 print "-i Issue Selection List\n";
 print "-----------------------\n";
 # Get Source IDs for AMAAS List
-my $query =  "SELECT distinct source_id, description, event 
+$query =  "SELECT distinct source_id, description, event 
               FROM appl_review, source src
 			  WHERE src.id = source_id
 			  ORDER BY event";
-my $ref = do_select($dbh, $query);
+$ref = do_select($dbh, $query);
 foreach my $arrayhdl (@$ref) {
 	my $source_id = $$arrayhdl{source_id};
 	my $description = $$arrayhdl{description} || "";

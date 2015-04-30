@@ -191,14 +191,14 @@ if (not defined $openres) {
 	exit_application(1);
 }
 
-my $headerline = "id;nr;name;url;network type;dns server;dns ip address;";
+my $headerline = "Appl. id;nr;name;url;network type;dns server;dns ip address;";
 $headerline   .= "rev. proxy server;rev. proxy ip;rev. proxy port;internet whitelist;";
 $headerline   .= "appl. server;appl. ip;appl. port;id req to network team;";
 $headerline   .= "dwh sla binnen;dwh sla buiten;cmo monitoring;";
 $headerline   .= "fmo monitoring;fmo result;fmo category;Review Remarks\n";
 print Rep $headerline;
 
-my @fields = qw(id number name url dns_category dns_servername dns_ip_address
+my @fields = qw(appl_id number name url dns_category dns_servername dns_ip_address
 			    rev_server rev_ip_address rev_port nt_source_id
 				dir_server dir_ip_address dir_port path_source_id
 				sla_binnen sla_buiten cmo_monitoring
