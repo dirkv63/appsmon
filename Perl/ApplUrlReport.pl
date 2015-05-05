@@ -34,7 +34,7 @@ This script will get full Application to URL Report for a specific period.
 
 =head1 SYNOPSIS
 
- ApplUrlReport.pl -s source_id -f fmo_source_id
+ ApplUrlReport.pl -s source_id -f fmo_source_id -d dwh_source_id
 
  ApplUrlReport -h	Usage
  ApplUrlReport -h 1  Usage and description of the options
@@ -52,6 +52,10 @@ Source ID of the AmaaS reference period.
 
 Source ID of the FMO Sitescope Extract.
 
+=item B<-d source_id>
+
+Source ID of the DWH Extract.
+
 =back
 
 =head1 ADDITIONAL DOCUMENTATION
@@ -62,7 +66,7 @@ Source ID of the FMO Sitescope Extract.
 # Variables
 ########### 
 
-my ($log, $dbh, $source_id, $fmo_source_id);
+my ($log, $dbh, $source_id, $fmo_source_id, $dwh_source_id);
 my $reportdir = "c:/temp/";
 
 #####
@@ -144,7 +148,7 @@ sub get_appl_review($) {
 
 # Handle input values
 my %options;
-getopts("h:s:f:", \%options) or pod2usage(-verbose => 0);
+getopts("h:s:f:d:", \%options) or pod2usage(-verbose => 0);
 my $arglength = scalar keys %options;  
 if ($arglength == 0) {			# If no options specified,
 	$options{"h"} = 0;			# display usage.
@@ -176,6 +180,12 @@ if (defined $options{f}) {
 	$fmo_source_id = $options{f};
 } else {
 	$log->fatal("FMO Sitescope Source ID not defined, exiting...");
+	exit_application(1);
+}
+if (defined $options{d}) {
+	$dwh_source_id = $options{d};
+} else {
+	$log->fatal("DWH Extract Source ID not defined, exiting...");
 	exit_application(1);
 }
 # End handle input values
@@ -222,6 +232,7 @@ my $query =  "SELECT am.id id, appl.id appl_id, appl.number number, appl.name na
 			  LEFT JOIN url2appl_ip dir on dir.id=url.url2appl_ip_id
 			  LEFT JOIN req_network_path path on path.id = dir.req_network_path_id
 			  LEFT JOIN dwh_status dwh on dwh.application_id = appl.id
+					AND dwh.source_id = $dwh_source_id
 			  LEFT JOIN fmo_sitescope fmo on fmo.appl_id = appl.id 
 			        AND fmo.source_id = $fmo_source_id
 			  WHERE am.source_id = $source_id

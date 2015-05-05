@@ -48,7 +48,7 @@ Source ID for the second AMAAS File in the comparison.
 # Variables
 ########### 
 
-my ($log, $dbh, $first_id, $second_id, $first_name, $second_name);
+my ($log, $dbh, $first_id, $second_id, $first_name, $second_name, $first_cnt, $second_cnt);
 
 #####
 # use
@@ -154,8 +154,26 @@ foreach my $arrayhdl (@$ref) {
 	$second_name = $$arrayhdl{second_name} || "";
 }
 
+$query = "SELECT count(*) cnt
+		  FROM amaas 
+		  WHERE source_id=$first_id";
+$ref = do_select($dbh, $query);
+foreach my $arrayhdl (@$ref) {
+	$first_cnt  = $$arrayhdl{cnt} || 0;
+}
+
+$query = "SELECT count(*) cnt
+		  FROM amaas 
+		  WHERE source_id=$second_id";
+$ref = do_select($dbh, $query);
+foreach my $arrayhdl (@$ref) {
+	$second_cnt  = $$arrayhdl{cnt} || 0;
+}
+
+print "\n\nComparing Source Set \n$first_name ($first_cnt records)\nwith\n";
+print "$second_name ($second_cnt records)";
 # Get Applications in First Load not in Second Load
-print "\n\nApplications In $first_name,\nnot in $second_name\n\n";
+print "\n\nApplications In **$first_name**,\nNot In **$second_name**\n\n";
 $query =  "SELECT appl.number, appl.name, am.category 
 			  FROM amaas am, application appl 
 			  WHERE am.source_id = $first_id 
@@ -171,7 +189,7 @@ foreach my $arrayhdl (@$ref) {
 }
 
 # Get Applications in Second Load not in First Load
-print "\n\nApplications In $second_name,\nnot in $first_name\n\n";
+print "\n\nApplications In **$second_name**,\nNot In **$first_name**\n\n";
 $query =  "SELECT appl.number, appl.name, am.category 
 			  FROM amaas am, application appl 
 			  WHERE am.source_id = $second_id 
@@ -185,6 +203,26 @@ foreach my $arrayhdl (@$ref) {
 	my $category = $$arrayhdl{category} || "";
 	print "$number - $name - $category\n";
 }
+
+# Get changes in category between loads
+print "\n\nCategory Change between **$first_name**\nand **$second_name**\n\n";
+$query = "SELECT appl.number, appl.name, am1.category category_1, am2.category category_2
+		  FROM amaas am1, amaas am2, application appl 
+		  WHERE am1.source_id = $first_id
+			AND am2.source_id = $second_id
+			AND am1.application_id = am2.application_id
+			AND not (am1.category = am2.category)
+			AND appl.id=am1.application_id";
+$ref = do_select($dbh, $query);
+foreach my $arrayhdl (@$ref) {
+	my $number = $$arrayhdl{number} || "";
+	my $name = $$arrayhdl{name} || "";
+	my $category_1 = $$arrayhdl{category_1} || "";
+	my $category_2 = $$arrayhdl{category_2} || "";
+	print "$number - $name - $category_1 - $category_2\n";
+}
+
+
 
 print "\n\n";
 
