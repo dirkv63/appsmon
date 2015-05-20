@@ -34,7 +34,7 @@ This script will get URL monitoring in Error and defined actions for this applic
 
 =head1 SYNOPSIS
 
- ApplIssues.pl -s source_id -f fmo_source_id -i issue_source_id
+ ApplIssues.pl -s source_id -f fmo_source_id -i issue_source_id -d dwh_source_id
 
  ApplIssues -h	Usage
  ApplIssues -h 1  Usage and description of the options
@@ -48,27 +48,17 @@ This script will get URL monitoring in Error and defined actions for this applic
 
 Source ID of the AmaaS reference period.
 
-ID: 3 - for Update Guy 26/03/2015.
-
-ID: 24 - for Application Inventory Sharepoint Extract 23/04/2015.
-
-ID: 26 - for Application Inventory Sharepoint Extract, Monitoring Type Uitrol 24/04/2015.
-
 =item B<-f fmo_source_id>
 
 Source ID of the FMO Sitescope Extract.
-
-ID: 19 - for Sitescope Extract 08/04/2015
-
-ID: 20 - for Sitescope Extract 22/04/2015
 
 =item B<-i issue_source_id>
 
 Issue Remark source ID of the FMO Sitescope Extract. This can be a comma-separated list of Issues.
 
-ID: 18 - for List of Remarks following Sitescope Extract 08/04/2015.
+=item B<-d dwh_source_id>
 
-ID: 31 - for List of URLs after network change 29/04/2015.
+Source ID of the DWH Extract.
 
 =back
 
@@ -80,7 +70,7 @@ ID: 31 - for List of URLs after network change 29/04/2015.
 # Variables
 ########### 
 
-my ($log, $dbh, $source_id, $fmo_source_id, $issue_source_id);
+my ($log, $dbh, $source_id, $fmo_source_id, $issue_source_id, $dwh_source_id);
 my $reportdir = "c:/temp/";
 
 #####
@@ -139,7 +129,7 @@ sub trim {
 
 # Handle input values
 my %options;
-getopts("h:s:f:i:", \%options) or pod2usage(-verbose => 0);
+getopts("h:s:f:i:d:", \%options) or pod2usage(-verbose => 0);
 my $arglength = scalar keys %options;  
 if ($arglength == 0) {			# If no options specified,
 	$options{"h"} = 0;			# display usage.
@@ -177,6 +167,12 @@ if (defined $options{i}) {
 	$issue_source_id = $options{i};
 } else {
 	$log->fatal("Issue Remark Source ID not defined, exiting...");
+	exit_application(1);
+}
+if (defined $options{d}) {
+	$dwh_source_id = $options{d};
+} else {
+	$log->fatal("DWH Extract Source ID not defined, exiting...");
 	exit_application(1);
 }
 # Now print all input variables
@@ -229,13 +225,14 @@ my $query =  "SELECT am.id id, appl.number number, appl.name name, url.url url,
 			  LEFT JOIN url2appl_ip dir on dir.id=url.url2appl_ip_id
 			  LEFT JOIN req_network_path path on path.id = dir.req_network_path_id
 			  LEFT JOIN dwh_status dwh on dwh.application_id = appl.id
+					AND dwh.source_id = $dwh_source_id
 			  LEFT JOIN fmo_sitescope fmo on fmo.appl_id = appl.id 
 			         AND fmo.source_id = $fmo_source_id
 			  LEFT JOIN appl_review ar on ar.application_id = appl.id
-			         AND ar.source_id = ($issue_source_id)
 			  WHERE am.source_id = $source_id
-				AND am.category = 'URL'
-				AND not fmo.status like 'Status: Go%'"; # Status can be 'Good' or 'Goed', we're lucky here...
+			    AND ar.source_id = ($issue_source_id)
+				AND am.category = 'URL'";
+				#AND not fmo.status like 'Status: Go%'"; # Status can be 'Good' or 'Goed', we're lucky here...
 my $ref = do_select($dbh, $query);
 foreach my $arrayhdl (@$ref) {
 	my $id				= $$arrayhdl{id};
