@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: May 20, 2015 at 05:37 PM
+-- Generation Time: Jun 01, 2015 at 03:38 PM
 -- Server version: 5.5.22
 -- PHP Version: 5.4.0
 
@@ -1714,7 +1714,7 @@ INSERT INTO `amaas` (`id`, `application_id`, `source_id`, `category`) VALUES
 (1741, 31, 40, 'Mainframe'),
 (1742, 170, 40, 'Nog geen categorie'),
 (1743, 135, 40, 'URL'),
-(1744, 21, 40, 'Client/Server'),
+(1744, 21, 40, 'Nog Geen Categorie'),
 (1745, 303, 40, 'Fileserver'),
 (1746, 268, 40, 'Database'),
 (1747, 69, 40, 'Database'),
@@ -1748,7 +1748,7 @@ INSERT INTO `amaas` (`id`, `application_id`, `source_id`, `category`) VALUES
 (1775, 323, 40, 'URL'),
 (1776, 277, 40, 'URL'),
 (1777, 520, 40, 'Nog geen categorie'),
-(1778, 236, 40, 'Fileserver'),
+(1778, 236, 40, 'URL'),
 (1779, 379, 40, 'URL'),
 (1780, 19, 40, 'URL'),
 (1781, 377, 40, 'URL'),
@@ -1783,7 +1783,7 @@ INSERT INTO `amaas` (`id`, `application_id`, `source_id`, `category`) VALUES
 (1810, 206, 40, 'URL'),
 (1811, 106, 40, 'URL'),
 (1812, 256, 40, 'Nog geen categorie'),
-(1813, 218, 40, 'URL'),
+(1813, 218, 40, 'Nog Geen Categorie'),
 (1814, 315, 40, 'Nog geen categorie'),
 (1815, 145, 40, 'URL'),
 (1816, 134, 40, 'URL'),
@@ -1818,7 +1818,7 @@ INSERT INTO `amaas` (`id`, `application_id`, `source_id`, `category`) VALUES
 (1845, 241, 40, 'URL'),
 (1846, 376, 40, 'URL'),
 (1847, 101, 40, 'Database'),
-(1848, 385, 40, 'Fileserver'),
+(1848, 385, 40, 'URL'),
 (1849, 371, 40, 'URL'),
 (1850, 278, 40, 'URL'),
 (1851, 16, 40, 'URL'),
@@ -2334,7 +2334,7 @@ CREATE TABLE IF NOT EXISTS `appl_review` (
   PRIMARY KEY (`id`),
   KEY `application_id` (`application_id`,`source_id`),
   KEY `source_id` (`source_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Review remarks per Application URL' AUTO_INCREMENT=154 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Review remarks per Application URL' AUTO_INCREMENT=159 ;
 
 --
 -- Dumping data for table `appl_review`
@@ -2493,7 +2493,12 @@ INSERT INTO `appl_review` (`id`, `application_id`, `remark`, `source_id`) VALUES
 (150, 385, 'NEW Application! - Use Forward Proxy and URL: http://194.78.207.211:8888/web/v5.0.11.0/index2.php', 38),
 (151, 171, 'Direct Connection - User URL http://wm162492.vlaanderen.be/giskust/test.html', 38),
 (152, 335, 'Direct Connection - use URL: https://mft.vlaanderen.be/ - Long Time-out!', 38),
-(153, 92, 'Configure on VPC Sitescope', 38);
+(153, 92, 'Configure on VPC Sitescope', 38),
+(154, 8, 'Application no longer in AMAAS', 42),
+(155, 274, 'Remove extension /gui_dmt.html from monitoring URL. Use http://10.23.73.22:8080/DMT. ', 43),
+(156, 302, 'Confusion between 40211 and 40211.01, select 40211', 44),
+(157, 86, 'Confusion between 40211 and 40211.01,, select 40211', 44),
+(158, 160, 'ACM/IDM Only application, no direct URL available for now.', 45);
 
 -- --------------------------------------------------------
 
@@ -2509,7 +2514,7 @@ CREATE TABLE IF NOT EXISTS `appl_url` (
   PRIMARY KEY (`id`),
   KEY `appl_id` (`appl_id`,`url_id`),
   KEY `url_id` (`url_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Links the URL with the application. One URL can be linked with more than one app' AUTO_INCREMENT=164 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Links the URL with the application. One URL can be linked with more than one app' AUTO_INCREMENT=165 ;
 
 --
 -- Dumping data for table `appl_url`
@@ -2677,7 +2682,8 @@ INSERT INTO `appl_url` (`id`, `appl_id`, `url_id`, `url_type`) VALUES
 (160, 276, 86, 'SLA'),
 (161, 300, 86, 'SLA'),
 (162, 385, 269, 'SLA'),
-(163, 236, 270, 'SLA');
+(163, 236, 270, 'SLA'),
+(164, 112, 86, 'SLA');
 
 -- --------------------------------------------------------
 
@@ -4432,7 +4438,7 @@ CREATE TABLE IF NOT EXISTS `source` (
   `description` varchar(4000) DEFAULT NULL COMMENT 'Description of the source of information.',
   `event` date DEFAULT NULL COMMENT '(Approximate) date of the event.',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Consolidation of the different sources where information is collected. This allows to trace back where the information came from. \nA source of information is something delivered / imposed upon the monitoring team. Currently the monthly AMAAS list is a source of information. Compare with status table, where workflow states per record / URLs are managed.' AUTO_INCREMENT=41 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Consolidation of the different sources where information is collected. This allows to trace back where the information came from. \nA source of information is something delivered / imposed upon the monitoring team. Currently the monthly AMAAS list is a source of information. Compare with status table, where workflow states per record / URLs are managed.' AUTO_INCREMENT=46 ;
 
 --
 -- Dumping data for table `source`
@@ -4473,11 +4479,15 @@ INSERT INTO `source` (`id`, `description`, `event`) VALUES
 (33, 'AmaaS DWH Extract 30 April 2015', '2015-04-30'),
 (34, 'Sitescope Extract 04/05/2015 - Before Rename (Dirk)', '2015-05-04'),
 (35, 'Mail from Wendy Van Dooren, 30/04/2015 - 11:29', '2015-04-30'),
-(36, 'Collection Point for new Network Paths', '2015-05-12'),
+(36, 'Mail to Wim De Rick, 21/05/2015 - 13:49, ''Sitescope 2 Appl Server - Network Path''', '2015-05-21'),
 (37, 'Export Application inventory Sharepoint 05/05/15', '2015-05-05'),
 (38, 'Mail to Martin Repiscak, 07/05/2015 - 11:54, Sitescope Configuration', '2015-05-07'),
 (39, 'Sitescope Extract 18/05/2015 (Dirk)', '2015-05-18'),
-(40, 'AmaaS DWH Extract 18 May 2015', '2015-05-18');
+(40, 'AmaaS DWH Extract 18 May 2015', '2015-05-18'),
+(42, 'Mail from Lieven Bruers, 21/05/2015 - 10:19, RE: AMaaS availability en response tijden status', '2015-05-21'),
+(43, 'Manual Data Collection', '2015-05-21'),
+(44, 'Mail from Guy D''Haenens, 21/05/2015 - 12:13, RE: AMaaS availability en response tijden status', '2015-05-21'),
+(45, 'Mail from Dieter Van Dooren, 21/05/2015, ''RE: 30246 - DIGIS Availability''', '2015-05-21');
 
 -- --------------------------------------------------------
 
